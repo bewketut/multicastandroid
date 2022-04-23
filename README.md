@@ -15,7 +15,7 @@ chmod a+x ~/bin/mkasftp
  then start transfering files from/to phone to/from phone and PC.
 **for newer android versions(7 and above >7) you can use the app termux.
 you can install clang and compile the code or just use the binaries...only .shrc changes to .bashrc
-**on linux the same story. I assume there you have clang or gcc at your disposal..
+**on linux the same story. I assume there you have clang or gcc as your option on the PC..
 **So no need for ssh to run easy commands on remotely...mkasftp has the feature easily
 to be done on all multicast receivers...
 
