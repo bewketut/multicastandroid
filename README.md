@@ -1,4 +1,4 @@
-# multicastandroid
+# multicastandroid armv7-1a all android mobiles binary
 udp muticast file transfer protocol; multicast data filtering techniques on Android and Linux
 prerequests
 ------------
