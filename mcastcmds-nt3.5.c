@@ -1,5 +1,5 @@
 /********
-*****last date:March 2022, February 2021
+*****last date:7 May 2022,March 2022, February 2021
 **** copyright owner(author): Bewketu Tadilo
 **** license: BSD (put copyright ***holder name (i.e. Bewketu Tadilo and signature ~bts) on  this original code or derivative  and binaries to show the copyright embedded in it on further) *****/
 #include <stdio.h> 
@@ -75,13 +75,13 @@ char *argstr= argv[0];
 
 if(strrchr(argv[0],'/'))argstr=strrchr(argv[0],'/')+1;
 if(strrchr(argv[0],'.'))argstr=strrchr(argv[0],'/');
-strcat(strcat(strcat(strcat(strcpy(copr,"Copyright: Bewketu Tadilo (bewketu@yandex.com), 2021.\nPrepared to receive commands and file transfers!\n Now do "),argstr)," -f filename or "),argstr)," -c commandname\t on another terminal or computer on the network.\n waiting...");
+strcat(strcat(strcat(strcat(strcpy(copr,"Copyright ©Bewketu Tadilo(bewketu@yandex.com)2021-22\nPrepared to receive commands and file transfers!\n Now run "),argstr)," -f filename/s or "),argstr)," -c shell command\t on another terminal or computer on the network.\n waiting...");
 
 //printf("'0':%d,'a':%d,'A':%d\n",tointeger('0'),tointeger('a'),tointeger('A'));
 struct sockaddr_in src,temp[NMUTEXFILES],mcast,tmp2,src2;// *listadr;
 struct in_addr mcastaddr;
 off_t i;
-int so[NMUTEXFILES][NMUTEXFILES],sc,sock,sock2,n,sock3;
+int so[NMUTEXFILES][NMUTEXFILES],sc,sock,sock2=-1,n,sock3=-1;
 unsigned int ttl=1, d, k, x1; socklen_t j, mlen;  
 char message[MCASTBUF_SIZ];
 char filebuffer[MCASTBUF_SIZ];
@@ -92,7 +92,7 @@ FILE *fp;struct ip_mreq imr;
 //str2=base256(65489,str);
 //printf("%d\n,", tobase10(str2));
 
-char *inetadr= (char *) malloc(sizeof(char *)*INET_ADDRSTRLEN);
+char *inetadr= (char *) malloc(sizeof(char )*INET_ADDRSTRLEN);
 strcpy(inetadr,"227.226.225.");
 int sendflag=0;
 
@@ -120,7 +120,7 @@ mcast.sin_port=htons(MCASTP);
     exit(1);
   }
   
-char *fcomp= (char *)malloc(sizeof(char *)*200);
+char *fcomp= (char *)malloc(sizeof(char )*200);
 int fcompflag=0; unsigned char srcflag=DATASNG;
 
 uid_t user;
@@ -143,25 +143,27 @@ exit(0);
 }
 
 
-   char *addr= (char *)malloc(sizeof(char *)*(5+INET_ADDRSTRLEN)),*peern=(char *)malloc(sizeof(char *)*INET_ADDRSTRLEN +4),*addr2;
-FILE    *psfp= popen("ip route show | grep -o src.192.*","r"); 
+   char *addr= (char *)malloc(sizeof(char )*(5+INET_ADDRSTRLEN)),*peern=(char *)malloc(sizeof(char )*(INET_ADDRSTRLEN +4)),*addr2;
+FILE    *psfp= popen("ip route show | tail -1 | grep -o src.*","r"); 
 //addr=strcpy(addr+4,"127.0.0.1");
 if(psfp && fgets(addr,INET_ADDRSTRLEN+5,psfp)!=NULL) pclose(psfp);
+if (addr[4]< '0' || addr[4]>'9'){fprintf(stderr,"%s\n" ,"Atleast one of the file/s _receiver_/s shoud be _wifi hotspot_. Others can connect to _that receiver_ and can send and receive files. Connect first via wifi-direct or hotspot with the other devices. run ifconfig."); exit(0);}
+/*
 if(addr[4]!='1'){
 psfp= popen("ip route show | grep -o src.*","r"); 
 if(psfp && fgets(addr,INET_ADDRSTRLEN+5,psfp)!=NULL) pclose(psfp);
 }
-if(!*addr) {fprintf(stderr,"Connect first via wifi-direct or hotspot with the other devices. run ifconfig.\n"); exit(0);}
+*/
 addr+=4;
 strchr(addr,'\n')[0]='\0';
 strchr(addr,' ')[0]='\0';
 
-   psfp= popen("ip route show | grep -o 192.1.*","r");
+   /*psfp= popen("ip route show | grep -o 192.1.*","r");
 if(psfp && fgets(peern,INET_ADDRSTRLEN+1,psfp)!=NULL) pclose(psfp);
-if(!*peern || peern[0]!='1'){
-psfp= popen("ip route show","r");
+if(!*peern || peern[0]!='1'){*/
+psfp= popen("ip route show | tail -1","r");
 if(psfp && fgets(peern,INET_ADDRSTRLEN+1,psfp)!=NULL) pclose(psfp);
-}
+
 if(strchr(peern,'/')){
 strchr(peern,'/')[0]='\0';
 strrchr(peern,'.')[1]='1';
@@ -188,7 +190,7 @@ if(!('0'<=peern[1]&& peern[1]<='9')){ fprintf(stderr,"Connect first/others to th
 }
 src2.sin_family=tmp2.sin_family=src.sin_family=AF_INET;//
 src2.sin_port=tmp2.sin_port=src.sin_port=htons(MCASTP);
-char *tarext=(char *)malloc(sizeof(char *)*6); strcpy(tarext,".tar0") ; 
+char *tarext=(char *)malloc(sizeof(char )*6); strcpy(tarext,".tar0") ; 
 
 if(argc>2 && strncmp(argv[1],"-m",2)){
 sendlabel:
@@ -229,11 +231,20 @@ recvfrom(sock, message,8, 0, (struct sockaddr *) &src, &mlen);
      //   getpeername(sock, (struct sockaddr *)&src,&mlen);
 printf("%s\n","Great!! multicasting receiver that sends is found.");
 close(sock);//closing needed to make read only
-if((sock=socket(AF_INET, SOCK_DGRAM,0))<0) exit(0);
+if((sock=socket(AF_INET,
+  SOCK_DGRAM,0))<0) exit(0);
+
 mcast=src; srcflag=DATAPIPE; //needed b/c router can't write data fast to mcast...at the receiver pipe to mcast.
 message[MCASTBUF_SIZ-3]=DATAPIPE;
-bind(sock, (struct sockaddr *) &src2, sizeof(src2));
-  sc= sendto(sock,message, MCASTBUF_SIZ, 0, (struct sockaddr *) &src, sizeof(src));
+src2.sin_addr.s_addr=htonl(INADDR_ANY);
+
+bind(sock, (struct sockaddr *) &src2,sizeof(src2));
+d=0,sc=0;
+while((sc=sendto(sock,message,MCASTBUF_SIZ,0, (struct sockaddr *) &src, sizeof(src)))>0){
+//if(sc<1) 
+	d+=sc;
+if(d>=MCASTBUF_SIZ) break;
+}
 if(sc==-1) printf("Unable to send, to open pipe\n");message[MCASTBUF_SIZ-3]=DATARPT;
  break;
 }
@@ -250,7 +261,12 @@ command= strcat(strcat(command,argv[d])," ");
 //if(srcflag)
 //  sc= sendto(sock,command, 401, 0, (struct sockaddr *) &tmp2, sizeof(src));
 //command[MCASTBUF_SIZ-3]=DATARPT; 
-  sc= sendto(sock,command, MCASTBUF_SIZ, 0, (struct sockaddr *) &mcast, sizeof(mcast));
+d=0,sc=0;
+while((sc=sendto(sock,command,MCASTBUF_SIZ,0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
+//if(sc<1) 
+	d+=sc;
+if(d>=MCASTBUF_SIZ) break;
+}
 if(sc==-1) printf("Unable to send, do group exist\n");
  }
 if(!strcmp(argv[1],"-f")|| !strcmp(argv[1],"-v") || 
@@ -354,9 +370,10 @@ lseek(fdin,0L,SEEK_SET);
 size_t ntimes= (size/BUF_SIZ);
 
 message[MCASTBUF_SIZ-1]=filehash3 ; 
-
-sc=sendto(sock,message,MCASTBUF_SIZ, 0, (struct sockaddr *) &mcast,sizeof(mcast));
-
+n=0; d=0;
+while((n=sendto(sock,filename+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
+//if(n<1) continue;
+ d+=n; if(d>=MCASTBUF_SIZ) break; }
 int rem = size%BUF_SIZ;
 char rem1 =rem/256; 
 char rem2=rem%256;
@@ -384,7 +401,7 @@ n=0; d=0;
 while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(n<1) continue;
  d+=n; if(d>=MCASTBUF_SIZ) break; }
- usleep(2);
+ usleep(4);
 memset(buffer,0,BUF_SIZ);
 memset(filebuffer,0,BUF_SIZ);
 }
@@ -436,10 +453,10 @@ else {
 //fprintf(stdout,"%s%s\n",copr);
 fprintf(stdout,"%s\n",copr);
 FILE *fn[NMUTEXFILES][NMUTEXFILES]; 
-unsigned char findexmn=0,channel=0, prev, fflag=0;//fflag1=0;fflag,k=0,*cm;
- char *chead, *filen,y='x',x,*cwdir= (char *) malloc(sizeof(char *)*370);/*,*buff2=(char *)malloc(sizeof(char *)*6*BUF_SIZ)*/
-char **filen1 = (char **)malloc(sizeof(char **)*500);
-char *file_ats, *warning=(char *)malloc(sizeof(char *)*285); strcpy(warning,"EEOf");
+unsigned char findexmn=0,channel=0, prev=-1, fflag=0;//fflag1=0;fflag,k=0,*cm;
+ char *chead, *filen,y='x',x,*cwdir= (char *) malloc(sizeof(char )*370);/*,*buff2=(char *)malloc(sizeof(char *)*6*BUF_SIZ)*/
+char **filen1 = (char **)malloc(sizeof(char *)*500);
+char *file_ats, *warning=(char *)malloc(sizeof(char )*285); strcpy(warning,"EEOf");
 int sockp[2],recvonly='0';
 char channelfolder[330]; strcpy(channelfolder,"channel"); c=0;
 unsigned int nextlen[NMUTEXFILES][NMUTEXFILES],count=0, cnt=0, files2write=0,nlist=0; 
@@ -451,7 +468,7 @@ nextlen[i][d]=BUF_SIZ; fn[i][d]=NULL;
  //so[i][j]=0;
 }
 }
-filen= (char *)malloc(sizeof(char *)*300);
+filen= (char *)malloc(sizeof(char)*300);
 strcpy(cwdir,"cd "); FILE *html=NULL,*html1=NULL; char mess3[MCASTBUF_SIZ];
 char archives[8][270]; for(d=0; d <8; d++) strcpy(archives[d],"tar xvf ");
 html= fopen("index.htm","w");
@@ -502,13 +519,13 @@ else argv[1]="-f"; strcpy(fcomp,"ls -ds "); i=0;
 psfp=popen(strcat(fcomp,filen),"r");
 //printf(fcomp);
 if(!filen1[i])
-filen1[i]=(char *)malloc(sizeof(char *)*300);
+filen1[i]=(char *)malloc(sizeof(char)*300);
 while(fscanf(psfp,"%s%s",filen1[i]+290,filen1[i])!=EOF){
 argv[i+2]=filen1[i];
 //printf("%s\n",filen1[i]);
 i++;
 if(!filen1[i]) 
-filen1[i]=(char *)malloc(sizeof(char *)*300);
+filen1[i]=(char *)malloc(sizeof(char)*300);
 }
 pclose(psfp);
 argc=i+2;
@@ -570,7 +587,7 @@ sendto(sock2,"XOFREADY",9,0,(struct sockaddr *)&tmp2,sizeof(tmp2));
 break; continue;
  }
  d=+i;
-  if(switchflag && i==9  && d >8 && !strncmp(message+d-i,"XOFREADY",8)) d-=9;
+  if(switchflag && i==9  && !strncmp(message+d-i,"XOFREADY",8)) d-=9;
 
 	  if(d>=MCASTBUF_SIZ) break;
 }
@@ -889,7 +906,7 @@ char *mycpy(char *str1, char *str2, int len)
 {
 int i=0;
 for(i=0; i < len; i++){
-	if(*str1==*str2) ;
+	if(*str1== *str2) ;
 else if(*str2 || !*str1)
 *str1= *str2;
 str1++; str2++;
@@ -908,7 +925,7 @@ else return 0;
 fd=open(fname,O_RDONLY);
 size=lseek(fd,0L,SEEK_END);
 lseek(fd,0L,SEEK_SET);
-char *buf1=(char *)malloc(sizeof(char *)*size),*buf2=(char *)malloc(sizeof(char *)*size);
+char *buf1=(char *)malloc(sizeof(char )*size),*buf2=(char *)malloc(sizeof(char )*size);
 fp=fdopen(fd,"r");
 fgetcn(fp,buf1,0,size);
 readnf(fp,buf2,0,size);
