@@ -9,7 +9,7 @@ on the home folder and put the binaries added on here on the code list
 ...add execution permission and done.
 i.e
  mkdir \~/bin
- echo "PATH=$PATH:\~/bin";export PATH" >> ~/.shrc
+ echo "PATH=$PATH:\~/bin";export PATH" > ~/.shrc
  cp /sdcard/Download/mkasftp ~/bin
 chmod a+x ~/bin/mkasftp
  then start transfering files from/to phone to/from phone and PC.
