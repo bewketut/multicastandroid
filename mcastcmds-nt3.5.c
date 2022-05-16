@@ -230,15 +230,15 @@ recvfrom(sock, message,8, 0, (struct sockaddr *) &src, &mlen);
         if(!strncmp(message,"XOFREADY",8)){
      //   getpeername(sock, (struct sockaddr *)&src,&mlen);
 printf("%s\n","Great!! multicasting receiver that sends is found.");
-close(sock);//closing needed to make read only
+//close(sock);//closing needed to make read only
 if((sock=socket(AF_INET,
   SOCK_DGRAM,0))<0) exit(0);
 
 mcast=src; srcflag=DATAPIPE; //needed b/c router can't write data fast to mcast...at the receiver pipe to mcast.
 message[MCASTBUF_SIZ-3]=DATAPIPE;
-src2.sin_addr.s_addr=htonl(INADDR_ANY);
+//src2.sin_addr.s_addr=htonl(INADDR_ANY);
 
-bind(sock, (struct sockaddr *) &src2,sizeof(src2));
+//bind(sock, (struct sockaddr *) &src2,sizeof(src2));
 d=0,sc=0;
 while((sc=sendto(sock,message,MCASTBUF_SIZ,0, (struct sockaddr *) &src, sizeof(src)))>0){
 //if(sc<1) 
@@ -275,7 +275,7 @@ int nf= (BUF_SIZ-10)/300;
 //int nfiles=(argc-2)-cmflag*2; 
 //decreasing the cmdline  '-m mcastaddr' from //the arguement list
 int nfiles=(cmflag)?(argc-4) : (argc-2);
-int pipeflag=nfiles;
+int rnfiles=nfiles;
 int z;
 x1=2;strcpy(message,"FOList");
 for(j=2;j<argc && strncmp(argv[j],"-m",2); j++) {
@@ -401,7 +401,7 @@ n=0; d=0;
 while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(n<1) continue;
  d+=n; if(d>=MCASTBUF_SIZ) break; }
- usleep(4);
+ usleep(3);
 memset(buffer,0,BUF_SIZ);
 memset(filebuffer,0,BUF_SIZ);
 }
@@ -431,7 +431,7 @@ while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, siz
  d+=n;  if(d>=MCASTBUF_SIZ) break; }
 //munmap(srs,size);
 */
-buffer[MCASTBUF_SIZ-3]=(srcflag==DATAPIPE && j-1==pipeflag)?DATASNG:DATARPT;
+buffer[MCASTBUF_SIZ-3]=(srcflag==DATAPIPE && j-1==rnfiles)?DATASNG:DATARPT;
 
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
@@ -834,34 +834,34 @@ return sock3;
 off_t readnf(FILE *fd, void *ptr, off_t f, size_t n){	
 	int i;
 	//nread
-		for(i=0; i < 8;i++){
+		for(i=0; i < 6;i++){
 	fseek(fd,f,SEEK_SET);
 		//fgetcn(fd,ptr,f,n);
 	fread(ptr,1,n,fd);
 	} 
-		for(i=0;i <9;i++){
+		for(i=0;i <6;i++){
 	fseek(fd,f,SEEK_SET);
 	readn(fd,ptr,n);}
 
 	//2*n/3 read
-		for(i=0; i < 9;i++){		
+		for(i=0; i < 6;i++){		
 	fseek(fd,f+n/3,SEEK_SET);
 //		fgetcn(fd,ptr+n/3,f+n/3,n-n/3);
 	fread(ptr+n/3,1,n-n/3,fd);	
 	}
 	//n/2 read
-		for(i=0; i < 8;i++){
+		for(i=0; i < 6;i++){
 	fseek(fd,f+n/2,SEEK_SET);
 	//	fgetcn(fd,ptr+n/2,f+n/2,n-n/2);
 	fread(ptr+n/2,1,n-n/2,fd);	
 	}
 	
-	for(i=0; i <7;i++){	
+	for(i=0; i <6;i++){	
 	fseek(fd,f+2*n/3,SEEK_SET);
 //	fgetcn(fd,ptr+2*n/3,f+2*n/3,n-2*n/3);
 	fread(ptr+2*n/3,1,n-2*n/3,fd);		
 	}
-		for(i=0; i < 7;i++){
+		for(i=0; i < 6;i++){
 	fseek(fd,f+3*n/4,SEEK_SET);
 //	fgetcn(fd,ptr+3*n/4,f+3*n/4,n-3*n/4);
 	fread(ptr+3*n/4,1,n-3*n/4,fd);	
