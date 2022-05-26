@@ -78,7 +78,7 @@ if(strrchr(argv[0],'.'))argstr=strrchr(argv[0],'/');
 strcat(strcat(strcat(strcat(strcpy(copr,"Copyright ©Bewketu Tadilo(bewketu@yandex.com)2021-22\nPrepared to receive commands and file transfers!\n Now run "),argstr)," -f filename/s or "),argstr)," -c shell command\t on another terminal or computer on the network.\n waiting...");
 
 //printf("'0':%d,'a':%d,'A':%d\n",tointeger('0'),tointeger('a'),tointeger('A'));
-struct sockaddr_in src,temp[NMUTEXFILES],mcast,tmp2,src2;// *listadr;
+struct sockaddr_in src,temp[NMUTEXFILES],mcast,mcast2,tmp2,src2;// *listadr;
 struct in_addr mcastaddr;
 off_t i;
 int so[NMUTEXFILES][NMUTEXFILES],sc,sock,sock2=-1,n,sock3=-1;
@@ -106,9 +106,9 @@ if(!strcmp(argv[i],"-n")|| !strcmp(argv[i],"-mn")){
 if(!c) strcat(inetadr,"224");
 
 mcastaddr.s_addr=inet_addr(inetadr);
-mcast.sin_family=AF_INET;
-mcast.sin_addr.s_addr=inet_addr(inetadr);
-mcast.sin_port=htons(MCASTP);
+mcast2.sin_family=mcast.sin_family=AF_INET;
+mcast2.sin_addr.s_addr=mcast.sin_addr.s_addr=inet_addr(inetadr);
+mcast2.sin_port=mcast.sin_port=htons(MCASTP);
 //struct hostent *mcastad=gethostbyname(argv[argc-1]);
 //memcpy((char *) &mcastaddr.s_addr, mcastad->h_addr_list[0],mcastad->h_length); 
 //char *co=strstr(argv[1],"-c");
@@ -192,6 +192,8 @@ src2.sin_family=tmp2.sin_family=src.sin_family=AF_INET;//
 src2.sin_port=tmp2.sin_port=src.sin_port=htons(MCASTP);
 char *tarext=(char *)malloc(sizeof(char )*6); strcpy(tarext,".tar0") ; 
 
+src.sin_addr.s_addr=inet_addr(peern);
+
 if(argc>2 && strncmp(argv[1],"-m",2)){
 sendlabel:
 
@@ -201,7 +203,6 @@ src2.sin_addr.s_addr=(switchflag)?inet_addr(addr):htonl(INADDR_ANY);
 bind(sock, (struct sockaddr *) &src2, sizeof(src2));
 
 
-src.sin_addr.s_addr=inet_addr(peern);
 setsockopt(sock,IPPROTO_IP,IP_MULTICAST_TTL, &ttl,sizeof(ttl));
 message[MCASTBUF_SIZ-2]=userchannel;
 message[MCASTBUF_SIZ-3]=DATARPT;
@@ -216,7 +217,7 @@ else if(strcmp(argv[1],"-c")){
 
 strcpy(message,"XOFMCAST");
 d=0,sc=0;
-while((sc=sendto(sock,message,MCASTBUF_SIZ,0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
+while((sc=sendto(sock,message+d,MCASTBUF_SIZ-d,0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(sc<1) 
 	d+=sc;
 if(d>=8) break;
@@ -224,7 +225,7 @@ if(d>=8) break;
 mlen=sizeof(src);
 printf("%s\n","Waiting receiver to enter fresh.");
 
-while(1){
+while(srcflag!=DATAPIPE){
 recvfrom(sock, message,8, 0, (struct sockaddr *) &src, &mlen);
 //if(i!=-1) break;
         if(!strncmp(message,"XOFREADY",8)){
@@ -243,7 +244,7 @@ while((sc=sendto(sock,message,MCASTBUF_SIZ,0, (struct sockaddr *) &src, sizeof(s
 if(d>=MCASTBUF_SIZ) break;
 }
 if(sc==-1) printf("Unable to send, to open pipe\n");message[MCASTBUF_SIZ-3]=DATARPT;
- break;
+ 
 }
 }
 }
@@ -443,8 +444,10 @@ fclose(fdin1);
 
  }
 
-if(sendflag) goto receivelabel;
- }
+if(sendflag)
+	goto receivelabel;
+
+  }
 else {
 
 //fprintf(stdout,"%s%s\n",copr);
@@ -497,15 +500,15 @@ receivelabel:
 
 if(recvonly!=-1 && recvonly =='0' ){
 if( y!='R'){
-fprintf(stderr,"Receive(R)/Send command(s)/Receivefor now(r/1-9/a-10p-28/)/Send file(x/v-stream)/quit(q)?\n(R/s/r[1-9a-p]/x[v]/q)");
-while((x= getchar())!='\n')if(x!='r') y= toupper(x);else y=x; fprintf(stderr,"\n");
+fprintf(stdout,"%s","Receive(R)/Send command(s)/Receivefor now(r/1-9/a-10p-28/)/Send file(x/v-stream)/quit(q)?\n(R/s/r[1-9a-p]/x[v]/q)");
+while((x= getchar())!='\n')if(x!='r') y= toupper(x);else y=x; fprintf(stdout,"%s","\n");
 if(y>='0' && y<='P'){if(y<='9') recvonly=y+1; else recvonly=  y-6;} 
   if(recvonly>'0' && recvonly<=('W')){ recvonly--;}
 if(y=='R')recvonly=-1;
  if (y=='S' || y=='X' || y=='V'){
 if(y=='X'|| y=='V'){
 system("ls");
-printf("__(regex help note(using *): 1.files starting 'fil' enter: fil* result: all files like file1.txt filanything.pdf, filemusic.mp4 will be sent2. files ending with 'mp4' enter: *mp4 or *.mp4 result: vidclip.mp4,  filmanything.m4, anything.mp4 will be sent.3. filepart names in between them 'fil'. enter : *fil* and any and all files and folders containing the characters 'fil' in their name get send.)__\nWrite a filename/s(regex accepted):");
+printf("%s","__(regex help note(using *): 1.files starting 'fil' enter: fil* result: all files like file1.txt filanything.pdf, filemusic.mp4 will be sent2. files ending with 'mp4' enter: *mp4 or *.mp4 result: vidclip.mp4,  filmanything.m4, anything.mp4 will be sent.3. filepart names in between them 'fil'. enter : *fil* and any and all files and folders containing the characters 'fil' in their name get send.)__\nWrite a filename/s(regex accepted):");
 }
 else if(y=='S') printf("$:~");
  fgets(filen,50,stdin);
@@ -562,8 +565,12 @@ if(i < 0) {printf("Cannot join Multicast Group. Waiting in unicast. is this %sse
 }
 
 else if(!switchflag) { //if _no_server x.x.x.1
- sendto(sock2,"XOFREADY",9,0,(struct sockaddr *)&src,sizeof(src));
-//if((sock3=socket(AF_INET, SOCK_DGRAM,0))<0) exit(0);
+n=0; d=0;
+strcpy(message,"XOFREADY");
+while((n=sendto(sock2,message+d,9-d, 0, (struct sockaddr *) &src, sizeof(src)))>0){
+// if(n<1) continue;
+ d+=n;  if(d>=9) break; }
+ //if((sock3=socket(AF_INET, SOCK_DGRAM,0))<0) exit(0);
 
 //bind(sock3, (struct sockaddr *) &mcast, sizeof(mcast));		
 //sockp[0]=sock2; //sockp[1]=sock3;
@@ -578,9 +585,14 @@ mlen=sizeof(tmp2);
 if(!files2write && count==1) goto receivelabel;
  i=0;d=0;
 while((i=recvfrom(sock2, message+d, MCASTBUF_SIZ-d, 0, (struct sockaddr *) &tmp2 , &mlen))> 0){
-if(d<9 && !switchflag  && !strncmp(message,"XOFMCAST",8))
+if(d<30 && !switchflag  && !strncmp(message,"XOFMCAST",8))
 {
-sendto(sock2,"XOFREADY",9,0,(struct sockaddr *)&tmp2,sizeof(tmp2));
+	n=0; k=0;
+strcpy(message,"XOFREADY");
+while((n=sendto(sock2,message+k,9-k, 0, (struct sockaddr *) &tmp2, sizeof(tmp2)))>0){
+// if(n<1) continue;
+ k+=n;  if(k>=9) break; }
+
 break; continue;
  }
  d=+i;
@@ -668,9 +680,9 @@ strcat(strcat(archives[findexmn%8],"; rm -f "),message+6);
 }
 } 
 if(fn[channel][findexmn])
-fprintf(stderr,"opening file %s for writing %d\n",channelfolder,findexmn);
+fprintf(stdout,"%s%s%s%d%s","opening file ",channelfolder, " for writing",findexmn,"\n");
 else if(so[channel][0])
- fprintf(stderr,"The file %s is being streamed on udp://127.0.0.1:%d\n",channelfolder,MCASTP+channelport);
+ fprintf(stdout,"The file %s is being streamed on udp://127.0.0.1:%d\n",channelfolder,MCASTP+channelport);
 else {
 
 	if(!(so[channel][0]) && 
@@ -713,7 +725,7 @@ else if(!strncmp(message,"FOList",6)){
 nlist=message[8]*256+message[7];
 //printf("message 9:%d\n",message[10]);
 for(d=0;d< nlist; d++)
-printf("%s%d:%s%s%s%s\n","file",d+1, message+10+d*300, " of_size:" ,message+10+d*300+290,"KB will be downloaded");
+printf("%s%d%s%s%s%s%s","file",d+1, ":",message+10+d*300, " of_size:" ,message+10+d*300+290,"KB will be downloaded\n");
 files2write+=nlist;
 //nlist=0;
 }
@@ -754,15 +766,15 @@ if(fn[channel][findexmn]){
 	fclose(fn[channel][findexmn]);
 fn[channel][findexmn]=NULL;
 if(archives[findexmn%8][8]){ system(archives[findexmn%8]); archives[findexmn%8][8]=0;}
-fprintf(stderr,"%s %d\n","Finished writing and just closed file ",findexmn);
+fprintf(stdout,"%s %d%s","Finished writing and just closed file ",findexmn,"\n");
  } 
 else if (so[channel][0]){
 	
 //so[channel][0]=0;
- fprintf(stderr,"Finished streaming %s%d on udp://127.0.0.1:%d\n",channelfolder,findexmn,MCASTP+channelport);
+ fprintf(stdout,"Finished streaming %s%d on udp://127.0.0.1:%d\n",channelfolder,findexmn,MCASTP+channelport);
  }
 else 
-fprintf(stderr,"file can't be opened- ro folder/or is not being streamed\n");
+fprintf(stdout,"file can't be opened- ro folder/or is not being streamed\n");
 nlist+= (nlist>0)?-1:0;
 files2write--;
 if(message[0]=='E')printf("%s\n",message+4);
