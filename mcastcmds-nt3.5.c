@@ -186,7 +186,7 @@ psfp= popen(pscmd,"r");
 if((addr2=strchr(peern,' ')))
  addr2[0]='\0';
  pclose(psfp);
-if(!('0'<=peern[1]&& peern[1]<='9')){ fprintf(stderr,"Connect first/others to this devicevia wifi-Direct or this(?) Wifi hotspot.The device's ip is:%s for this session. Restart this program if this error shows.\n",addr); strncpy(peern,addr,INET_ADDRSTRLEN);}
+if(peern[1]<'0' || peern[1]>'9' ){ fprintf(stderr,"Connect first/others to this devicevia wifi-Direct or this(?) Wifi hotspot.The device's ip is:%s for this session. Restart this program if this error shows.\n",addr); strncpy(peern,addr,INET_ADDRSTRLEN);}
 }
 src2.sin_family=tmp2.sin_family=src.sin_family=AF_INET;//
 src2.sin_port=tmp2.sin_port=src.sin_port=htons(MCASTP);
@@ -230,9 +230,6 @@ recvfrom(sock, message,8, 0, (struct sockaddr *) &src, &mlen);
         if(!strncmp(message,"XOFREADY",8)){
      //   getpeername(sock, (struct sockaddr *)&src,&mlen);
 printf("%s\n","Great!! multicasting receiver that sends is found.");
-//close(sock);//closing needed to make read only
-if((sock=socket(AF_INET,
-  SOCK_DGRAM,0))<0) exit(0);
 
 mcast=src; srcflag=DATAPIPE; //needed b/c router can't write data fast to mcast...at the receiver pipe to mcast.
 message[MCASTBUF_SIZ-3]=DATAPIPE;
@@ -834,34 +831,34 @@ return sock3;
 off_t readnf(FILE *fd, void *ptr, off_t f, size_t n){	
 	int i;
 	//nread
-		for(i=0; i < 6;i++){
+		for(i=0; i < 4;i++){
 	fseek(fd,f,SEEK_SET);
 		//fgetcn(fd,ptr,f,n);
 	fread(ptr,1,n,fd);
 	} 
-		for(i=0;i <6;i++){
+		for(i=0;i <5;i++){
 	fseek(fd,f,SEEK_SET);
 	readn(fd,ptr,n);}
 
 	//2*n/3 read
-		for(i=0; i < 6;i++){		
+		for(i=0; i < 5;i++){		
 	fseek(fd,f+n/3,SEEK_SET);
 //		fgetcn(fd,ptr+n/3,f+n/3,n-n/3);
 	fread(ptr+n/3,1,n-n/3,fd);	
 	}
 	//n/2 read
-		for(i=0; i < 6;i++){
+		for(i=0; i < 4;i++){
 	fseek(fd,f+n/2,SEEK_SET);
 	//	fgetcn(fd,ptr+n/2,f+n/2,n-n/2);
 	fread(ptr+n/2,1,n-n/2,fd);	
 	}
 	
-	for(i=0; i <6;i++){	
+	for(i=0; i <3;i++){	
 	fseek(fd,f+2*n/3,SEEK_SET);
 //	fgetcn(fd,ptr+2*n/3,f+2*n/3,n-2*n/3);
 	fread(ptr+2*n/3,1,n-2*n/3,fd);		
 	}
-		for(i=0; i < 6;i++){
+		for(i=0; i < 3;i++){
 	fseek(fd,f+3*n/4,SEEK_SET);
 //	fgetcn(fd,ptr+3*n/4,f+3*n/4,n-3*n/4);
 	fread(ptr+3*n/4,1,n-3*n/4,fd);	
