@@ -1,8 +1,12 @@
-# multicastandroid armv7-1a all android mobiles binary
-udp muticast file transfer protocol; multicast data filtering techniques on Android and Linux
+# mkasftp (multicast file transfer protocol)
+- accurate & errorfree udp multicast file transfer 
+- (tested upto 512Mb file sizes)
+- works with terminal and for fine results making the receiver mobile a hotspot.
+multicast android armv7-1a almost all android mobiles mkasftp binary
+udp muticast file transfer protocol. multicast data filtering techniques on Android and Linux
 prerequests
-------------
-**for low version androids (like 5&6)...
+ --------
+** for low version androids (like 5&6)...
 the app terminone (terminal emulator) suffice.
 all one has to do is create a bin directory
 on the home folder and put the binaries added on here on the code list
@@ -19,5 +23,5 @@ you can install clang and compile the code or just use the binaries...only .shrc
 **So no need for ssh to run easy commands on remotely...mkasftp has the feature easily
 to be done on all multicast receivers...
 
-TODO(although with not high priority): a gui featured android app.
+TODO(worked on although with not high priority): a gui featured android app.
 Feedback on: bewketu@yandex.com
