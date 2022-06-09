@@ -144,7 +144,7 @@ exit(0);
 
 
    char *addr= (char *)malloc(sizeof(char )*(5+INET_ADDRSTRLEN)),*peern=(char *)malloc(sizeof(char )*(INET_ADDRSTRLEN +4)),*addr2;
-FILE    *psfp= popen("ip route show | tail -1 | grep -o src.*","r"); 
+FILE    *psfp= popen("ip route show | tail -n 1 | grep -o src.*","r"); 
 //addr=strcpy(addr+4,"127.0.0.1");
 if(psfp && fgets(addr,INET_ADDRSTRLEN+5,psfp)!=NULL) pclose(psfp);
 if (addr[4]< '0' || addr[4]>'9'){fprintf(stderr,"%s\n" ,"Atleast one of the file/s _receiver_/s shoud be _wifi hotspot_. Others can connect to _that receiver_ and can send and receive files. Connect first via wifi-direct or hotspot with the other devices. run ifconfig."); exit(0);}
@@ -161,7 +161,7 @@ strchr(addr,' ')[0]='\0';
    /*psfp= popen("ip route show | grep -o 192.1.*","r");
 if(psfp && fgets(peern,INET_ADDRSTRLEN+1,psfp)!=NULL) pclose(psfp);
 if(!*peern || peern[0]!='1'){*/
-psfp= popen("ip route show | tail -1","r");
+psfp= popen("ip route show | tail -n 1","r");
 if(psfp && fgets(peern,INET_ADDRSTRLEN+1,psfp)!=NULL) pclose(psfp);
 
 if(strchr(peern,'/')){
@@ -179,7 +179,7 @@ if(switchflag){
 peern[0]=peern[1]=-1;
 	char pscmd[57];  
 	strcpy(pscmd,"ip neigh show | grep -o ");
-	strncat(pscmd,addr,strlen(addr)/3); strcat(pscmd,"* | grep -v FAILED |tail -1");
+	strncat(pscmd,addr,strlen(addr)/3); strcat(pscmd,"* | grep -v FAILED |tail -n 1");
 //psfp= popen("ip neigh show | grep -o 192.* | grep -v FAILED | tail -1","r");
 psfp= popen(pscmd,"r");
  fgets(peern,INET_ADDRSTRLEN,psfp);
@@ -748,7 +748,6 @@ if(d>=BUF_SIZ)
 writen(fn[channel][findexmn],message, nextlen[channel][findexmn]);
 else
 writen(fn[channel][findexmn],message, d);
-
 }
 else  {
 //if(k>0)
