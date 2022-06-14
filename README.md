@@ -7,7 +7,7 @@ udp muticast file transfer protocol. multicast data filtering techniques on Andr
 prerequests
  --------
 ** for low version androids (like 5&6)...
-the app terminone (terminal emulator) suffice.
+the app terminone (terminal emulator) suffice-included on this release in case you want it all 2gether.
 all one has to do is create a bin directory
 on the home folder and put the binaries added on here on the code list
 ...add execution permission and done.
