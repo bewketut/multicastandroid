@@ -270,10 +270,16 @@ if(!strcmp(argv[1],"-f")|| !strcmp(argv[1],"-v") ||
 int nf= (BUF_SIZ-10)/300;
 //int nfiles=(argc-2)-cmflag*2; 
 //decreasing the cmdline  '-m mcastaddr' from //the arguement list
-int nfiles=(cmflag)?(argc-4) : (argc-2);
-int rnfiles=nfiles;
-int z;
-x1=2;strcpy(message,"FOList");
+int nfiles=(cmflag)?(argc-4) : (argc-2);size_t size=0,ntimes=0;
+int rnfiles=nfiles, z=0, len1=0,rem=0,fdin;
+ char *remn=message,*filename= message,*buffer =message, *strf2=NULL,rem1,rem2;
+x1=2;
+
+char filebuffer[BUF_SIZ];
+char mmbuffer[BUF_SIZ];
+FILE *fdin1;DIR *tempd=NULL;
+unsigned char fileround,filehash,filehash3;
+strcpy(message,"FOList");
 for(j=2;j<argc && strncmp(argv[j],"-m",2); j++) {
 
  argv[2]=argv[j];
@@ -289,8 +295,9 @@ message[8]=nf/256;nfiles-=nf;}
 
  z=0;
 
-while( z< nf && x1 < argc-cmflag*2){ 
-int len1=(!sendflag && strlen(argv[x1])< 300)?strlen(argv[x1]) : 300;
+while( z< nf && x1 < argc-cmflag*2)
+{ 
+len1=(!sendflag && strlen(argv[x1])< 300)?strlen(argv[x1]) : 300;
 mycpy(message+10+z*300,argv[x1],len1);
 if(len1< 300)
 printf("file %d:%s size: unchecked  will be sent\n",x1-1,argv[x1]); 
@@ -306,11 +313,11 @@ while((n=sendto(sock,message+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, si
 
 }
  
-FILE *fdin1;
-DIR *tempd=opendir(argv[2]);
+
+tempd=opendir(argv[2]);
 if(tempd) {
 	closedir(tempd);
- char *strf2=  strrchr(argv[2],'/');
+strf2=  strrchr(argv[2],'/');
 strcpy(fcomp,"tar cvf "); //8 characters 6-readable(tarcvf)2-spaces.there4- fcomp+8 after strcat
 if(strf2)
 strcat(fcomp,strf2+1);
@@ -341,11 +348,10 @@ if(!strcmp(argv[1],"-cf") && (fp=fopen(argv[2],"r"))){
         fclose(fp);
 }
 else{
+fileround=argv[2][0] + argv[2][strlen(argv[2])-(strlen(argv[2])/2)] - argv[2][strlen(argv[2])-(strlen(argv[2])/3)];
+ filehash3= fileround%NMUTEXFILES;  
+filehash= filehash3;
 
-unsigned char fileround=argv[2][0] + argv[2][strlen(argv[2])-(strlen(argv[2])/2)] - argv[2][strlen(argv[2])-(strlen(argv[2])/3)];
-unsigned char filehash3= fileround%NMUTEXFILES;  
-unsigned char filehash= filehash3;
-char *filename= message;
 
 if(!strcmp(argv[1],"-f") || !strcmp(argv[1],"-v")) { filename[1]='S'; filename[2]='0'; message[3]='F';filename[4]='!';if(!strcmp(argv[1],"-v")) message[3]='f';}
 filename[0]=filehash; message[5]=userchannel; filename[6]='\0';
@@ -358,23 +364,21 @@ strcat(filename,argv[2]);//initialization
 //struct stat statbuf;
 //fstat(fdin,&statbuf);
 //long size=statbuf.st_size; 
-int fdin =fileno(fdin1);
+fdin =fileno(fdin1);
 fseek(fdin1,0L,SEEK_END);
-size_t size=ftell(fdin1);
+size=ftell(fdin1);
 fseek(fdin1,0L,SEEK_SET);
-size_t ntimes= (size/BUF_SIZ);
+ ntimes= (size/BUF_SIZ);
 
 message[MCASTBUF_SIZ-1]=filehash3 ; 
 n=0; d=0;
 while((n=sendto(sock,filename+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(n<1) continue;
  d+=n; if(d>=MCASTBUF_SIZ) break; }
-int rem = size%BUF_SIZ;
-char rem1 =rem/256; 
-char rem2=rem%256;
-char *buffer =message;
-char filebuffer[BUF_SIZ];
-char mmbuffer[BUF_SIZ];
+ rem = size%BUF_SIZ;
+ rem1 =rem/256; 
+rem2=rem%256;
+
 //off_t pa_offset = 0 & ~(sysconf(_SC_PAGE_SIZE)-1);
 //off_t offset;
 
@@ -398,7 +402,7 @@ while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, siz
 // usleep(2);
 }
 
- char *remn=message; message[4]= rem1; message[5]=rem2;
+ message[4]= rem1; message[5]=rem2;
 message[0]=filehash3; message[1]='E'; remn[2]='O'; message[3]='L'; message[6]=userchannel;
 message[7]='\0'; 
 buffer[MCASTBUF_SIZ-3]=DATARPT;
