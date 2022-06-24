@@ -1,5 +1,5 @@
 /********
-*****last date:21 June 2022,7 May 2022,March 2022, February 2021
+*****last date:24 June,21 June,7 May,March 2022, February 2021
 **** copyright owner(author): Bewketu Tadilo
 **** license: BSD (put copyright ***holder name (i.e. Bewketu Tadilo and signature ~bts) on  this original code or derivative  and binaries to show the copyright embedded in it on further) *****/
 #include <stdio.h> 
@@ -86,8 +86,6 @@ off_t i;
 int so[NMUTEXFILES][NMUTEXFILES],sc,sock,sock2=-1,n,sock3=-1;
 unsigned int ttl=1, d, k, x1; socklen_t j, mlen;  
 char message[MCASTBUF_SIZ];
-char filebuffer[MCASTBUF_SIZ];
-char mmbuffer[MCASTBUF_SIZ];
 unsigned char c=0,cmflag=0;
 FILE *fp;struct ip_mreq imr;
 // off_t filesizes[NMUTEXFILES],curroffs[NMUTEXFILES];
@@ -144,20 +142,18 @@ printf("%s -c command or -f(v) files(-f write files on your channel%d folder -v 
 
 exit(0);
 }
-
-
-   char *addr= (char *)malloc(sizeof(char )*(5+INET_ADDRSTRLEN)),*peern=(char *)malloc(sizeof(char )*(INET_ADDRSTRLEN +4)),*addr2;
+   char *addr2= (char *)malloc(sizeof(char )*(5+INET_ADDRSTRLEN)),*peern=(char *)malloc(sizeof(char )*(INET_ADDRSTRLEN +4)),*addr=NULL,*peern1=NULL;
 FILE    *psfp= popen("ip route show | tail -n 1 | grep -o src.*","r"); 
 //addr=strcpy(addr+4,"127.0.0.1");
-if(psfp && fgets(addr,INET_ADDRSTRLEN+5,psfp)!=NULL) pclose(psfp);
-if (addr[4]< '0' || addr[4]>'9'){fprintf(stderr,"%s\n" ,"Atleast one of the file/s _receiver_/s shoud be _wifi hotspot_. Others can connect to _that receiver_ and can send and receive files. Connect first via wifi-direct or hotspot with the other devices. run ifconfig."); exit(0);}
+if(psfp && fgets(addr2,INET_ADDRSTRLEN+5,psfp)!=NULL) pclose(psfp);
+if (addr2[4]< '0' || addr2[4]>'9'){fprintf(stderr,"%s\n" ,"Atleast one of the file/s _receiver_/s shoud be _wifi hotspot_. Others can connect to _that receiver_ and can send and receive files. Connect first via wifi-direct or hotspot with the other devices. run ifconfig."); exit(0);}
 /*
 if(addr[4]!='1'){
 psfp= popen("ip route show | grep -o src.*","r"); 
 if(psfp && fgets(addr,INET_ADDRSTRLEN+5,psfp)!=NULL) pclose(psfp);
 }
 */
-addr+=4;
+addr=addr2+4;
 strchr(addr,'\n')[0]='\0';
 strchr(addr,' ')[0]='\0';
 
@@ -166,9 +162,8 @@ if(psfp && fgets(peern,INET_ADDRSTRLEN+1,psfp)!=NULL) pclose(psfp);
 if(!*peern || peern[0]!='1'){*/
 psfp= popen("ip route show | tail -n 1","r");
 if(psfp && fgets(peern,INET_ADDRSTRLEN+1,psfp)!=NULL) pclose(psfp);
-
-if(strchr(peern,'/')){
-strchr(peern,'/')[0]='\0';
+if((peern1=strchr(peern,'/'))){
+peern1[0]='\0';
 strrchr(peern,'.')[1]='1';
 }
 
@@ -186,8 +181,8 @@ peern[0]=peern[1]=-1;
 //psfp= popen("ip neigh show | grep -o 192.* | grep -v FAILED | tail -1","r");
 psfp= popen(pscmd,"r");
  fgets(peern,INET_ADDRSTRLEN,psfp);
-if((addr2=strchr(peern,' ')))
- addr2[0]='\0';
+if((peern1=strchr(peern,' ')))
+ peern1[0]='\0';
  pclose(psfp);
 if(peern[1]<'0' || peern[1]>'9' ){ fprintf(stderr,"Connect first/others to this devicevia wifi-Direct or this(?) Wifi hotspot.The device's ip is:%s for this session. Restart this program if this error shows.\n",addr); strncpy(peern,addr,INET_ADDRSTRLEN);}
 }
@@ -310,33 +305,31 @@ while((n=sendto(sock,message+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, si
  d+=n; if(d>=MCASTBUF_SIZ) break; }
 
 }
- strcpy(fcomp,"tar cvf "); 
+ 
+FILE *fdin1;
 DIR *tempd=opendir(argv[2]);
-int strf=0;
-if(tempd) {strf=1; closedir(tempd);}
-
+if(tempd) {
+	closedir(tempd);
  char *strf2=  strrchr(argv[2],'/');
-
+strcpy(fcomp,"tar cvf "); //8 characters 6-readable(tarcvf)2-spaces.there4- fcomp+8 after strcat
 if(strf2)
 strcat(fcomp,strf2+1);
 else
  strcat(fcomp,argv[2]); 
 strcat(fcomp,tarext);
-if(strf){
 system(strcat(strcat(fcomp," "),argv[2])); 
+usleep(1000);
 strchr(fcomp+8,'.')[0]='\0';fcompflag=1;
 strcat(fcomp,tarext);
+fdin1=fopen(fcomp+8,"rb");//O_RDONLY); 
+argv[2]=fcomp+8;
 }
+else fdin1=fopen(argv[2],"rb");//O_RDONLY);
 //usleep(1000);
 //printf("fcomp:%s",fcomp+8);
 
 //create tar cvfz strcat(argv[2],".tgz") 
-FILE *fdin1;
-if(strf)
-{fdin1=fopen(fcomp+8,"rb");//O_RDONLY); 
-argv[2]=fcomp+8;
-}
-else fdin1=fopen(argv[2],"rb");//O_RDONLY);
+
 if(!fdin1) {printf("%s\n","Unable to open file for reading (read permission). is the folder location correct?");
             exit(1);}
 if(!strcmp(argv[1],"-cf") && (fp=fopen(argv[2],"r"))){
@@ -379,11 +372,9 @@ while((n=sendto(sock,filename+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, s
 int rem = size%BUF_SIZ;
 char rem1 =rem/256; 
 char rem2=rem%256;
-
-
-
 char *buffer =message;
-
+char filebuffer[BUF_SIZ];
+char mmbuffer[BUF_SIZ];
 //off_t pa_offset = 0 & ~(sysconf(_SC_PAGE_SIZE)-1);
 //off_t offset;
 
@@ -404,15 +395,13 @@ n=0; d=0;
 while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(n<1) continue;
  d+=n; if(d>=MCASTBUF_SIZ) break; }
- usleep(2);
-
+// usleep(2);
 }
 
  char *remn=message; message[4]= rem1; message[5]=rem2;
 message[0]=filehash3; message[1]='E'; remn[2]='O'; message[3]='L'; message[6]=userchannel;
 message[7]='\0'; 
 buffer[MCASTBUF_SIZ-3]=DATARPT;
-
 n=0; d=0;
 while((n=sendto(sock,message+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 // if(n<1) continue;
@@ -435,7 +424,6 @@ while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, siz
 //munmap(srs,size);
 */
 buffer[MCASTBUF_SIZ-3]=(srcflag==DATAPIPE && j-1==rnfiles)?DATASNG:DATARPT;
-
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 // if(n<1) continue;

@@ -3,9 +3,9 @@
 #run this note on shell: sh note.sh
 
 mkdir ~/bin;
-echo "PATH=$PATH:~/bin; export PATH; cd /sdcard/Download;" > ~/.shrc;
+printf "PATH=$PATH:~/bin; export PATH; cd /sdcard/Download;\n" > ~/.shrc;
 
 cp /sdcard/Download/mkasftp ~/bin;
 chmod a+x ~/bin/mkasftp;
 
-echo "finished...now run mkasftp on the terminal.";
+printf "finished...now run mkasftp on the terminal.\n";
