@@ -382,31 +382,30 @@ rem2=rem%256;
 
 //off_t pa_offset = 0 & ~(sysconf(_SC_PAGE_SIZE)-1);
 //off_t offset;
-
+buffer[MCASTBUF_SIZ-3]=DATARPT;
 for(i=0,k=0;k< ntimes;k++,i+=BUF_SIZ){
 /*note: offset has to be multi.of 2^12*/
-readnf(fdin1,buffer,i,BUF_SIZ);
+  fgetcn(fdin1,filebuffer,i,BUF_SIZ);
 mmapf(fdin,mmbuffer,i,BUF_SIZ);
-   fgetcn(fdin1,filebuffer,i,BUF_SIZ); 
-
+ readnf(fdin1,buffer,i,BUF_SIZ);
 mycpy3(buffer,mmbuffer,filebuffer,BUF_SIZ);
 
 /*
 buffer[MCASTBUF_SIZ-3]=srcflag;
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>-2){if(n<1) continue; d+=n; if(d>BUF_SIZ+2) break; }*/
-buffer[MCASTBUF_SIZ-3]=DATARPT;
+ usleep(1);
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(n<1) continue;
  d+=n; if(d>=MCASTBUF_SIZ) break; }
-// usleep(2);
+usleep(1);
 }
 
  message[4]= rem1; message[5]=rem2;
 message[0]=filehash3; message[1]='E'; remn[2]='O'; message[3]='L'; message[6]=userchannel;
 message[7]='\0'; 
-buffer[MCASTBUF_SIZ-3]=DATARPT;
+//buffer[MCASTBUF_SIZ-3]=DATARPT;
 n=0; d=0;
 while((n=sendto(sock,message+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 // if(n<1) continue;
@@ -415,9 +414,9 @@ while((n=sendto(sock,message+d,MCASTBUF_SIZ-d, 0, (struct sockaddr *) &mcast, si
  //  pa_offset=20;
  //  printf("i፡%d po፡%d",i, 
 //srs=mmap(0,rem,PROT_READ,MAP_SHARED,fdin,i);
+fgetcn(fdin1,filebuffer,i,rem);		
 mmapf(fdin,mmbuffer,i,rem);
-fgetcn(fdin1,filebuffer,i,rem);
-	readnf(fdin1,buffer,i,rem);
+readnf(fdin1,buffer,i,rem);
 	mycpy3(buffer,mmbuffer,filebuffer,rem);
 
  /*
@@ -467,7 +466,7 @@ nextlen[i][d]=BUF_SIZ; fn[i][d]=NULL;
 }
 }
 filen= (char *)malloc(sizeof(char)*300);
-strcpy(cwdir,"cd "); FILE *html=NULL,*html1=NULL; char mess3[MCASTBUF_SIZ];
+strcpy(cwdir,"cd "); FILE *html=NULL,*html1=NULL; 
 char archives[8][270]; for(d=0; d <8; d++) strcpy(archives[d],"tar xvf ");
 html= fopen("index.htm","w");
 if(html){
@@ -818,10 +817,10 @@ system(chead+1);count=1; }
 }
 else printf("%s\n","format: -c usern@hostn~ commands ...(the token '~'  after -c before the command or -c~commands)");
 }
-if(mess3[1]){
+/*if(mess3[1]){
 	memcpy(message,mess3,MCASTBUF_SIZ);
 	mess3[1]=0;
-}
+}*/
  }
 //return setsockopt(so,IPPRTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(struct ip_mreq));
 }
@@ -942,7 +941,7 @@ char *mycpy3(char *frd, char *mmp,char *fgtc,int len){
 	int i=0;
 	for(i=0; i<len; i++)
 	{ 
-	frd[i]=(frd[i])? frd[i] : ((mmp[i])?mmp[i] : fgtc[i]);
+	frd[i]=(fgtc[i] && (fgtc[i]==frd[i] || fgtc[i]==mmp[i]))? fgtc[i] :((frd[i])? frd[i] : ((mmp[i])?mmp[i] : fgtc[i]));
 	}
 return frd;
 }
