@@ -230,7 +230,10 @@ recvfrom(sock, message,8, 0, (struct sockaddr *) &src, &mlen);
      //   getpeername(sock, (struct sockaddr *)&src,&mlen);
 printf("%s\n","Great!! multicasting receiver that sends is found.");
 
-mcast=src; srcflag=DATAPIPE; //needed b/c router can't write data fast to mcast...at the receiver pipe to mcast.
+mcast=src; srcflag=DATAPIPE; 
+}
+}
+//needed b/c router can't write data fast to mcast...at the receiver pipe to mcast.
 message[MCASTBUF_SIZ-3]=DATAPIPE;
 //src2.sin_addr.s_addr=htonl(INADDR_ANY);
 
@@ -243,8 +246,6 @@ if(d>=MCASTBUF_SIZ) break;
 }
 if(sc==-1) printf("Unable to send, to open pipe\n");message[MCASTBUF_SIZ-3]=DATARPT;
  
-}
-}
 }
 tarext[4]=channelname;
 if(!strcmp(argv[1],"-c")){
