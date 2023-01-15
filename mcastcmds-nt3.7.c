@@ -44,10 +44,10 @@ extern ssize_t wrtrdn(FILE *fd,const void *ptr, size_t n, size_t fn(const void *
 
 /* bug: note for future coders (stdio printf library bug), printf can only be used with specifiers at the socket receiver. e.g as printf("%d%s",6,"string") and not as printf("%dstring",6).
 
-struct srcmutexfiles {
+struct srcmxfiles {
 		unsigned char *fhash;
 		FILE *fname;
-}; typedef struct srcmutexfiles mcastsrcfile;
+}; typedef struct srcmxfiles mcastsrcfile;
 
 This file exclusion struc is not removed...b/c I deal/mostly dealt with mutual exclusions in sockets of multicast. if one gets this main point  in multicast, then they can deal with multicast sockets further. so, here a buffer of BUF_SIZ (4096 or 8192- observe the granulity while supporting all unix systems with d/t  memory PAGE_SIZE..8192 being to add support to Solaris OS.) has added two more mutual exclusion bytes at the end of on every BUF_SIZed packet to be sent(technically one byte maybe suffice) and so the array is BUF_SIZ+2 (or as i call it and should be called MCASTBUF_SIZ) data[MCASTBUF_SIZ-2]=mutual exclusion byte 1
 data[MCASTBUF_SIZ-1]=mutual exclusion byte 2
@@ -493,7 +493,7 @@ receivelabel:
 
 if(recvonly!=-1 && recvonly =='0' ){
 if( y!='R'){
-fprintf(stdout,"%s","Receive(R)/Send command(s)/Receivefor now(r/1-9/a-10p-28/)/Send file(x/v-stream)/quit(q)?\n(R/s/r[1-9a-p]/x[v]/q)");
+fprintf(stdout,"%s","Receive(R)/Send command(s)/Receivefor now(r/1-9/a-10p-28/)/Send files(x/v-stream)/quit(q)?\n(R/s/r[1-9a-p]/x[v]/q)");
 while((x= getchar())!='\n')if(x!='r') y= toupper(x);else y=x; fprintf(stdout,"%s","\n");
 if(y>='0' && y<='P'){if(y<='9') recvonly=y+1; else recvonly=  y-6;} 
   if(recvonly>'0' && recvonly<=('W')){ recvonly--;}
@@ -501,7 +501,7 @@ if(y=='R')recvonly=-1;
  if (y=='S' || y=='X' || y=='V'){
 if(y=='X'|| y=='V'){
 system("ls");
-printf("%s","__(regex help note(using *): 1.files starting 'fil' enter: fil* result: all files like file1.txt filanything.pdf, filemusic.mp4 will be sent2. files ending with 'mp4' enter: *mp4 or *.mp4 result: vidclip.mp4,  filmanything.m4, anything.mp4 will be sent.3. filepart names in between them 'fil'. enter : *fil* and any and all files and folders containing the characters 'fil' in their name get send.)__\nWrite a filename/s(regex accepted):");
+printf("%s","__(regex help note(using *): 1.files starting 'fil' enter: fil* result: all files like file1.txt filanything.pdf, filemusic.mp4 will be sent. \n2. files ending with 'mp4' enter: *mp4 or *.mp4 result: vidclip.mp4,  anyname.mp4, anything.mp4 will be sent.\n3. filepart names in between them 'fil'. enter : *fil* and any and all files and folders containing the characters 'fil' in their name get send.)__\nWrite a filename/s(regex accepted):");
 }
 else if(y=='S') printf("$:~");
  fgets(filen,50,stdin);
