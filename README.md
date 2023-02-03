@@ -1,4 +1,4 @@
-# mkasftp6 (multicast file transfer protocol)
+# mkasftp6 (ipv6 multicast file transfer protocol)
 - accurate & errorfree udp multicast file transfer 
 - (tested upto 512Mb file sizes)
 - works with terminal and for fine results making the receiver mobile a hotspot.
