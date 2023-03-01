@@ -9,10 +9,11 @@ prerequests
  --------
 **for newer android versions(7 and above >7)
 - update:install and use gui app mkasftp6.apk along with or without the shell binary mkasftp6. 
-----------------------------------------
+
 on Android 12 and above
------------------------------------------
+-----------------------
 one needs to give the installed app (mkasftp6.apk) all media permissions manually...until in the future ... make the program request the permssion.
+- not to forget if it is android 12(or maybe above 9)...one should use "join mgroup" (the bottom most right button of the app) to connect to hostpot and follow what it says...it  requests for the user to "turn on wifi" but then one should follow the dialog that pops at the bottom of the app to connect...(as I think since Android 12(or 10 maybe)...wifi connection is only allowed if the app requests it...i.e. simply turning on wifi and trying to use it with the app cant work without getting the app to request it.  
 you can use the app termux.
 you can install clang and compile the code or just use the binaries...only .shrc changes to .bashrc
 
