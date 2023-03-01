@@ -35,7 +35,7 @@
 #define DATASNG 0
 #define DATARPT 1
 #define DATAPIPE 2
-
+#define DATACLOSEPIPE 3
 //extern char *base256(int num,char *str);
 //extern int tobase10(char *str);
 extern char *mycpy(char *str1, char *str2, int len);
@@ -97,7 +97,7 @@ off_t i;
 int so[NMUTEXFILES][NMUTEXFILES],sc,sock,sock2=-1,n,sock3=-1;
 unsigned int ttl=1, d, k, x1; socklen_t j, mlen;  
 char message[MBUFSIZ];
-unsigned char c=0,cmflag=0,switchflag=0,sendflag=0, fcompflag=0, srcflag=DATASNG;
+unsigned char c=0,cmflag=0,switchflag=0,sendflag=0, fcompflag=0, datacount=0,srcflag=DATASNG;
 FILE *fp;char *tarext=(char *)malloc(sizeof(char *)*6);
 // off_t filesizes[NMUTEXFILES],curroffs[NMUTEXFILES];
 //char str[20],*str2; 
@@ -456,24 +456,27 @@ mmapf(fdin,mmbuffer,i,BUF_SIZ);
 
 mycpy3(buffer,mmbuffer,filebuffer,BUF_SIZ);
 
-
-buffer[MBUFSIZ-3]=DATARPT;
+for(datacount=0; datacount <2; datacount++){
+buffer[MBUFSIZ-3]=datacount;
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MBUFSIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(n<1) continue;
  d+=n; if(d>=MBUFSIZ) break; }
+}
 // usleep(2);
 }
 
  message[4]= rem1; message[5]=rem2;
 message[0]=filehash3; message[1]='E'; remn[2]='O'; message[3]='L'; message[6]=userchannel;
 message[7]='\0'; 
-buffer[MBUFSIZ-3]=DATARPT;
+
+for(datacount=0; datacount <2; datacount++){
+message[MBUFSIZ-3]=datacount;
 n=0; d=0;
 while((n=sendto(sock,message+d,MBUFSIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 // if(n<1) continue;
  d+=n;  if(d>=MBUFSIZ) break; }
-
+}
  //  pa_offset=20;
  //  printf("i፡%d po፡%d",i, 
 //srs=mmap(0,rem,PROT_READ,MAP_SHARED,fdin,i);
@@ -481,13 +484,15 @@ mmapf(fdin,mmbuffer,i,rem);
 fgetcn(fdin1,filebuffer,i,rem);
 	readnf(fdin1,buffer,i,rem);
 	mycpy3(buffer,mmbuffer,filebuffer,rem);
-
-buffer[MBUFSIZ-3]=(srcflag==DATAPIPE && j-1==rnfiles)?DATASNG:DATARPT;
+for(datacount=0; datacount <2; datacount++){
+buffer[MBUFSIZ-3]=datacount;
+if(datacount==1)
+buffer[MBUFSIZ-3]=(srcflag==DATAPIPE && j-1==rnfiles)?DATACLOSEPIPE:DATARPT;
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MBUFSIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 // if(n<1) continue;
  d+=n;  if(d>=MBUFSIZ) break; }
-	 
+}	 
 //close(fdin);	 
 fclose(fdin1);
  if(fcompflag){strncpy(fcomp,"rm -f ",6); system(fcomp);}
@@ -506,8 +511,8 @@ else {
 //fprintf(stdout,"%s%s\n",copr);
 fprintf(stdout,"%s\n",copr);
 FILE *fn[NMUTEXFILES][NMUTEXFILES]; 
-unsigned char findexmn=0,channel=0, prev=-1, fflag=0;//fflag1=0;fflag,k=0,*cm;
- char *chead, *filen,y='x',x,*cwdir= (char *) malloc(sizeof(char )*370);/*,*buff2=(char *)malloc(sizeof(char *)*6*BUF_SIZ)*/
+unsigned char findexmn=0,channel=0, prev=-1;//fflag1=0;fflag,k=0,*cm;
+ char *chead, *filen,y='x',x,fflag=0,*cwdir= (char *) malloc(sizeof(char )*370);/*,*buff2=(char *)malloc(sizeof(char *)*6*BUF_SIZ)*/
 char **filen1 = (char **)malloc(sizeof(char *)*500);
 char *file_ats, *warning=(char *)malloc(sizeof(char )*285); strcpy(warning,"EEOf");
 int sockp[2],recvonly='0';
@@ -522,7 +527,7 @@ nextlen[i][d]=BUF_SIZ; fn[i][d]=NULL;
 }
 }
 filen= (char *)malloc(sizeof(char)*300);
-strcpy(cwdir,"cd "); FILE *html=NULL,*html1=NULL; char mess3[MBUFSIZ];
+strcpy(cwdir,"cd "); FILE *html=NULL,*html1=NULL; char *messagebuffer[NMUTEXFILES][NMUTEXFILES];
 char archives[8][270]; for(d=0; d <8; d++) strcpy(archives[d],"tar xvf ");
 html= fopen("index.htm","w");
 if(html){
@@ -696,9 +701,7 @@ break; continue;
 //fflag1=fflag;
 fflag=message[MBUFSIZ-3];
 
-if(fflag!=DATARPT){
-			if(fflag==DATAPIPE){
-		if(!sock3 && !switchflag){
+ if(fflag==DATAPIPE && !sock3 && !switchflag){
 				if((sock3=socket(AF_INET6, SOCK_DGRAM,0))<0) exit(0);
 
 bind(sock3, (struct sockaddr *) &mcast2, sizeof(mcast2));	
@@ -707,11 +710,8 @@ bind(sock3, (struct sockaddr *) &mcast2, sizeof(mcast2));
 sockp[1]=sock3;
 pipe(sockp); 
 		}
-		
-}
-else if(sock3){
+else if(fflag==DATACLOSEPIPE && sock3){
 close(sock3); sock3=0;
-}
 }
  /*
 		if(fflag1==DATARPT){
@@ -731,6 +731,7 @@ channelport= ((channel-'0') > 0)?channel-'0': channel;
  snprintf(channelfolder+7,4,"%d",channelport);
 strcat(channelfolder,"/");
 strcat(channelfolder,message+6);
+messagebuffer[channel][findexmn]= (char *) malloc(sizeof(char *)*BUFSIZ);
 if(fn[channel][findexmn]==NULL){
 if(fopen(channelfolder,"r")){ 
 if((file_ats=strrchr(channelfolder,'.'))){ file_ats[0]='\0';strcpy(filen,"_1.");strcat(filen,file_ats+1);  strcat(channelfolder,filen);}
@@ -774,6 +775,7 @@ if(strstr(message+6,tarext)){ strcpy(archives[findexmn%8]+8,message+6);
 strcat(strcat(archives[findexmn%8],"; rm -f "),message+6);
 }
 } 
+
 if(fn[channel][findexmn])
 fprintf(stdout,"%s%s%s%d%s","opening file ",channelfolder, " for writing",findexmn,"\n");
 else if(so[channel][0])
@@ -806,7 +808,8 @@ fprintf(html1,"%s",vid);
 fclose(html1);
 id[0]++;
 } }
-files2write+=(!nlist)?1:0;
+if(nlist==0)
+files2write++;
 
 }
 else if(!strncmp(message+1,"EOL",3)){
@@ -839,10 +842,19 @@ if(fn[channel][findexmn]) {
 //fwrite(message,1,nextlen[channel][findexmn],fn[channel][findexmn]);
 //if(nextlen[channel][findexmn]==BUF_SIZ)
 //writen(fn[channel][findexmn],message,i);//
+if(fflag==0) {
+memcpy(messagebuffer[channel][findexmn],message,BUF_SIZ);
 if(d>=BUF_SIZ) 
 writen(fn[channel][findexmn],message, nextlen[channel][findexmn]);
 else
 writen(fn[channel][findexmn],message, d);
+}
+else if (strncmp(message,messagebuffer[channel][findexmn],7)){
+if(d>=BUF_SIZ) 
+writen(fn[channel][findexmn],message, nextlen[channel][findexmn]);
+else
+writen(fn[channel][findexmn],message, d);
+}
 }
 else  {
 //if(k>0)
@@ -856,6 +868,7 @@ while((n=sendto(so[channel][0],message/*buff2+k*BUF_SIZ*/,BUF_SIZ, 0, (struct so
 usleep(400);
 }
 if(nextlen[channel][findexmn]!=BUF_SIZ){
+free(messagebuffer[channel][findexmn]);
 if(fn[channel][findexmn]){
 	fclose(fn[channel][findexmn]);
 fn[channel][findexmn]=NULL;
@@ -869,8 +882,8 @@ else if (so[channel][0]){
  }
 else 
 fprintf(stdout,"file can't be opened- ro folder/or is not being streamed\n");
-nlist+= (nlist>0)?-1:0;
 files2write--;
+if(files2write==0)nlist=0;
 if(message[0]=='E')printf("%s\n",message+4);
 count=1;
 nextlen[channel][findexmn]=BUF_SIZ;
@@ -915,10 +928,7 @@ system(chead+1);count=1; }
 }
 else printf("%s\n","format: -c usern@hostn~ commands ...(the token '~'  after -c before the command or -c~commands)");
 }
-if(mess3[1]){
-	memcpy(message,mess3,MBUFSIZ);
-	mess3[1]=0;
-}
+
  }
 //return setsockopt(so,IPPRTO_IP, IP_DROP_MEMBERSHIP, &imr, sizeof(struct ip_mreq));
 }
