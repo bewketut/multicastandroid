@@ -32,10 +32,10 @@
 #define MBUFSIZ (BUF_SIZ+3) 
 #define MCASTP 5010 
 #define NMUTEXFILES  256
-#define DATASNG 0
-#define DATARPT 1
-#define DATAPIPE 2
-#define DATACLOSEPIPE 3
+#define DATASNG 1
+#define DATARPT 2
+#define DATAPIPE 3
+#define DATACLOSEPIPE 4
 //extern char *base256(int num,char *str);
 //extern int tobase10(char *str);
 extern char *mycpy(char *str1, char *str2, int len);
@@ -97,7 +97,7 @@ off_t i;
 int so[NMUTEXFILES][NMUTEXFILES],sc,sock,sock2=-1,n,sock3=-1;
 unsigned int ttl=1, d, k, x1; socklen_t j, mlen;  
 char message[MBUFSIZ];
-unsigned char c=0,cmflag=0,switchflag=0,sendflag=0, fcompflag=0, datacount=0,srcflag=DATASNG;
+unsigned char c=0,cmflag=0,switchflag=0,sendflag=0, fcompflag=0, datacount=1,srcflag=DATASNG;
 FILE *fp;char *tarext=(char *)malloc(sizeof(char *)*6);
 // off_t filesizes[NMUTEXFILES],curroffs[NMUTEXFILES];
 //char str[20],*str2; 
@@ -456,21 +456,21 @@ mmapf(fdin,mmbuffer,i,BUF_SIZ);
 
 mycpy3(buffer,mmbuffer,filebuffer,BUF_SIZ);
 
-for(datacount=0; datacount <2; datacount++){
+for(datacount=1; datacount <3; datacount++){
 buffer[MBUFSIZ-3]=datacount;
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MBUFSIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 //if(n<1) continue;
  d+=n; if(d>=MBUFSIZ) break; }
 }
-// usleep(2);
+
 }
 
  message[4]= rem1; message[5]=rem2;
 message[0]=filehash3; message[1]='E'; remn[2]='O'; message[3]='L'; message[6]=userchannel;
 message[7]='\0'; 
 
-for(datacount=0; datacount <2; datacount++){
+for(datacount=1; datacount <3; datacount++){
 message[MBUFSIZ-3]=datacount;
 n=0; d=0;
 while((n=sendto(sock,message+d,MBUFSIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
@@ -484,16 +484,16 @@ mmapf(fdin,mmbuffer,i,rem);
 fgetcn(fdin1,filebuffer,i,rem);
 	readnf(fdin1,buffer,i,rem);
 	mycpy3(buffer,mmbuffer,filebuffer,rem);
-for(datacount=0; datacount <2; datacount++){
+for(datacount=1; datacount <3; datacount++){
 buffer[MBUFSIZ-3]=datacount;
-if(datacount==1)
+if(datacount==2)
 buffer[MBUFSIZ-3]=(srcflag==DATAPIPE && j-1==rnfiles)?DATACLOSEPIPE:DATARPT;
 n=0; d=0;
 while((n=sendto(sock,buffer+d,MBUFSIZ-d, 0, (struct sockaddr *) &mcast, sizeof(mcast)))>0){
 // if(n<1) continue;
  d+=n;  if(d>=MBUFSIZ) break; }
 }	 
-//close(fdin);	 
+	 
 fclose(fdin1);
  if(fcompflag){strncpy(fcomp,"rm -f ",6); system(fcomp);}
 }
@@ -552,8 +552,7 @@ pclose(psfp);
 struct sockaddr_in src2={AF_INET,htons(MCASTP)};
  inet_pton(AF_INET, peern, &src2.sin_addr);
  struct sockaddr_in6 mcast2 = {AF_INET6, htons(MCASTP)};
-//struct sockaddr_in6 mcast2=
-//{AF_INET6, htons(MCASTP)};
+
 inet_pton(AF_INET6,inetadr, &mcast2.sin6_addr);
 //imr.imr_interface;
 //if(switchflag){ //if _server x.x.x.1
@@ -563,9 +562,6 @@ struct sockaddr_in6 address = {AF_INET6, htons(MCASTP)};
 address.sin6_scope_id=ifindex;  
 	
   
- //imr.imr_multiaddr.s_addr=mcastaddr.s_addr;                   
-//src.sin_addr.s_addr=inet_addr(peern);
-
 receivelabel:
 
 if(recvonly!=-1 && recvonly =='0' ){
@@ -587,12 +583,12 @@ if(y=='X'|| y=='V') {
 if(y=='V') argv[1]="-v";
 else argv[1]="-f"; strcpy(fcomp,"ls -ds "); i=0;
 psfp=popen(strcat(fcomp,filen),"r");
-//printf(fcomp);
+
 if(!filen1[i])
 filen1[i]=(char *)malloc(sizeof(char)*300);
 while(fscanf(psfp,"%s%s",filen1[i]+290,filen1[i])!=EOF){
 argv[i+2]=filen1[i];
-//printf("%s\n",filen1[i]);
+
 i++;
 if(!filen1[i]) 
 filen1[i]=(char *)malloc(sizeof(char)*300);
@@ -620,8 +616,8 @@ if(y=='Q'|| y=='T') return 0;
 }
 if(recvonly>'0' && recvonly!=-1)
 recvonly--; 
+
 if(count==1) count--;
-if(!(cnt%25)){
                if(!cnt){
                   //tmp2.sin_addr.s_addr=htonl(INADDR_ANY); 
   
@@ -639,7 +635,7 @@ if(setsockopt(sock2, SOL_SOCKET, SO_REUSEADDR, (char *)&ttl, sizeof(ttl)) < 0) {
 
    //     imr.imr_multiaddr.s_addr=mcastaddr.s_addr;
 		bind(sock2, (struct sockaddr *) &address, sizeof(address));
-		  }
+		  
 	struct ipv6_mreq recvgroup;
 	inet_pton(AF_INET6, inetadr, &recvgroup.ipv6mr_multiaddr); 
 recvgroup.ipv6mr_interface =ifindex;
@@ -713,17 +709,7 @@ pipe(sockp);
 else if(fflag==DATACLOSEPIPE && sock3){
 close(sock3); sock3=0;
 }
- /*
-		if(fflag1==DATARPT){
-memcpy(filebuffer, message, MBUFSIZ);
-continue;}
-else
-if ( filebuffer[MBUFSIZ-2]==message[MBUFSIZ-2]){
-memcpy(mess3,message,MBUFSIZ);
-memcpy(message,filebuffer,MBUFSIZ);
-}
-//  printf("fnp:%d,groupid:%d,fnindex:%d\n",fn[channel][findexmn],channel,findexmn);
-*/
+ 
  if(!strncmp(message+1,"S0F!",4)||!strncmp(message+1,"S0f!",4)){ 
 channel= ((unsigned char)message[5])%NMUTEXFILES;
 findexmn=((unsigned char)message[0])%NMUTEXFILES;
@@ -821,7 +807,7 @@ channel=((unsigned char)message[6])%NMUTEXFILES;
 else if(!strncmp(message,"FOList",6)){
 
 nlist=message[8]*256+message[7];
-//printf("message 9:%d\n",message[10]);
+
 for(d=0;d< nlist; d++)
 printf("%s%d%s%s%s%s%s","file",d+1, ":",message+10+d*300, " of_size:" ,message+10+d*300+290,"KB will be downloaded\n");
 files2write+=nlist;
@@ -836,25 +822,16 @@ channelport= ((channel-'0') > 0)?channel-'0': channel;
 strcat(channelfolder,"/");
 message[MBUFSIZ-2]=0;
 message[MBUFSIZ-1]=0;
-//msync(message,BUF_SIZ,MS_SYNC);
+
 if(findexmn>0){
 if(fn[channel][findexmn]) {
-//fwrite(message,1,nextlen[channel][findexmn],fn[channel][findexmn]);
-//if(nextlen[channel][findexmn]==BUF_SIZ)
-//writen(fn[channel][findexmn],message,i);//
-if(fflag==0) {
+
+if(fflag==DATASNG) 
 memcpy(messagebuffer[channel][findexmn],message,BUF_SIZ);
-if(d>=BUF_SIZ) 
+
+ if (fflag==DATASNG ||strncmp(message,messagebuffer[channel][findexmn],7))
 writen(fn[channel][findexmn],message, nextlen[channel][findexmn]);
-else
-writen(fn[channel][findexmn],message, d);
-}
-else if (strncmp(message,messagebuffer[channel][findexmn],7)){
-if(d>=BUF_SIZ) 
-writen(fn[channel][findexmn],message, nextlen[channel][findexmn]);
-else
-writen(fn[channel][findexmn],message, d);
-}
+
 }
 else  {
 //if(k>0)
@@ -865,7 +842,7 @@ else  {
 //printf("%s val:%d\n",buff2+k*BUF_SIZ,k);
 //sendto(sock2,buff2,k*BUF_SIZ, 0, (struct sockaddr *) &temp[channel], sizeof(temp[channel]));
 while((n=sendto(so[channel][0],message/*buff2+k*BUF_SIZ*/,BUF_SIZ, 0, (struct sockaddr *) &temp[channel], sizeof(temp[channel])))!=0) if(n!=-1) break;
-usleep(400);
+//usleep(400);
 }
 if(nextlen[channel][findexmn]!=BUF_SIZ){
 free(messagebuffer[channel][findexmn]);
