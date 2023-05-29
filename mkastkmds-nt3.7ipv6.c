@@ -356,7 +356,7 @@ else printf("Successfully sent tcp  connect command to %s.\n",inet_ntop(AF_INET6
 
 //bind(sock, (struct sockaddr *) &src2,sizeof(src2));
 
-/*****   tcp version *********close(sock);
+//close(sock);
 // sock=-1;
 if((sockseq1=socket(AF_INET6, SOCK_STREAM,0))<0) exit(0);
 bind(sockseq1, (struct sockaddr *) &senderaddr, sizeof(senderaddr));
@@ -371,7 +371,7 @@ while(1){
 sock=accept(sockseq1,NULL, NULL);
  if(sock!= -1) break;
 }
-*********tcp version end****/
+
 }
 message[MBUFSIZ-3]=DATASNG;
 tarext[4]=channelname;
@@ -694,10 +694,10 @@ if(count==1) count--;
                   //tmp2.sin_addr.s_addr=htonl(INADDR_ANY); 
   
 		if((sock2=socket(AF_INET6, SOCK_DGRAM,0))<0) exit(0);
-
+/*
 if(setsockopt(sock2, SOL_SOCKET, SO_REUSEADDR, (char *)&ttl, sizeof(ttl)) < 0) { perror("setsocketopt: Setting SO_REUSEADDR error"); 
    } 
-
+*/
 
 	if (setsockopt(sock2, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex, sizeof(ifindex))) {
 		perror("setsockopt interface error");
@@ -711,6 +711,8 @@ if(setsockopt(sock2, SOL_SOCKET, SO_REUSEADDR, (char *)&ttl, sizeof(ttl)) < 0) {
 		perror("setsockopt ttl error");
 		return 1;
 	}
+//message[MBUFSIZ-2]=userchannel;
+//message[MBUFSIZ-3]=DATARPT;
 if(!switchflag){
 if (setsockopt(sock2, IPPROTO_IPV6, IPV6_MULTICAST_LOOP,&ttl, sizeof(ttl))) {
 		perror("setsockopt loop error");
@@ -757,7 +759,8 @@ mlen2=sizeof(tmp2);
 while(1){
 if(!files2write && count==1) goto receivelabel;
  i=0;d=0;
-while((i=recvfrom(sock2, message+d, MBUFSIZ-d,tcpflag? MSG_WAITALL: 0 , (struct sockaddr *) &tmp2 , &mlen2))> 0){
+while((i=recvfrom(sock2, message+d, MBUFSIZ-d,(tcpflag)? MSG_WAITALL:0 , (struct sockaddr *) &tmp2 , &mlen2))> 0){
+//printf("%s\n",message+1+d);
  d=+i;
 if (d< MBUFSIZ){
 if(!strncmp(message+d+1,"XOFREADY",8))
@@ -767,10 +770,10 @@ strcpy(message+1,"XOFREADY");
 message[0]=switchflag;
 src2.sin_addr.s_addr=inet_addr(message+10);
 n=0; k=0;
-while((n=sendto(sock2,message+k,10-k,0,(struct sockaddr *) &src2, sizeof(src2)))>0){
+while((n=sendto(sock2,message+k,10-k, 0,(struct sockaddr *) &src2, sizeof(src2)))>0){
 // if(n<1) continue;
  k+=n;  if(k>=10) break; }
-
+//d-=9;
 break;
 }
 }
@@ -778,7 +781,8 @@ break;
 }
  
 message[MBUFSIZ-3]=message[MBUFSIZ-3];
-
+//printf("message[MBUFSIZ-3]=%d\n",message[MBUFSIZ-3]);
+//message[MBUFSIZ-3]=0;
 if(message[MBUFSIZ-3]==DATACLOSEPIPE){
 close(sock3); sock3=-1; 
 sock2=socktmp; close(sockseq2);
@@ -788,38 +792,38 @@ message[MBUFSIZ-3]=-1;
 else if(message[MBUFSIZ-3]==XOFMCAST )
 {
 printf("%s%s<<\n",">>received xomcast. Sending ready to sender address:-\t",message+10);
-
 //inet_ntop(AF_INET6,&tmp2.sin6_addr,message,INET6_ADDRSTRLEN));
 strcpy(message+1,"XOFREADY");
 message[0]=switchflag;
 src2.sin_addr.s_addr=inet_addr(message+10);
 n=0; k=0;
-while((n=sendto(sock2,message+k,10-k,0,(struct sockaddr *) &src2, sizeof(src2)))>0){
+while((n=sendto(sock2,message+k,10-k, 0,(struct sockaddr *) &src2, sizeof(src2)))>0){
 // if(n<1) continue;
  k+=n;  if(k>=10) break; }
-
+//d-=9;
 
 //message[MBUFSIZ-3]=0;
  }
 
 	else		 if(message[MBUFSIZ-3]==DATAPIPE){
-printf("%s%s<<\n","-->>Selected to be mkasftp data traffic mirror. Requesting 1-1 connect to Sender address:-\t",inet_ntop(AF_INET6,&tmp2.sin6_addr,message,INET6_ADDRSTRLEN));
+printf("%s%s<<\n","-->>Selected to be mkasftp data traffic mirror. Requesting tcp connect to Sender address:-\t",inet_ntop(AF_INET6,&tmp2.sin6_addr,message,INET6_ADDRSTRLEN));
 				message[MBUFSIZ-3]=-1; message[0]=-1;
 socktmp=sock2;
 //close(sock2);
 //src2.sin_addr.s_addr=inet_addr("127.0.0.1");
-/*		if((sock2=socket(AF_INET6, SOCK_STREAM,0))<0) exit(0);
+		if((sock2=socket(AF_INET6, SOCK_STREAM,0))<0) exit(0);
 if(connect_retry(sock2, (struct sockaddr *)&tmp2,sizeof(tmp2))<0){
 	perror("Connection refused"); exit(1);}
+//sock
 
-
-tcpflag=1;*/
+tcpflag=1;
 
 		if(sock3==-1 && !switchflag){
 				if((sock3=socket(AF_INET6, SOCK_DGRAM,0))<0) exit(0);
 
 bind(sock3, (struct sockaddr *) &mcast2, sizeof(mcast2));	
 			sockp[0]=sock2;
+//sock3=openmsock(mcast);
 sockp[1]=sock3;
 pipe(sockp); 
 		}
@@ -908,12 +912,10 @@ if(prev!=findexmn){
 html1=fopen("index.htm","a");
 if(html1){
 strcpy(vid,"<video  style='margin-left:2%; width:350px; height:370px;'autoplay='' controls='' id='thevid");strcat(vid,id); strcat(vid,"'><source src='");
-/*
-strcat(vid,"file://");strcat(vid,cwdir);
-*/ strcat(vid,"./"); strcat(vid,message+6);
+strcat(vid,"file://");strcat(vid,cwdir); strcat(vid,"/"); strcat(vid,message+6);
  strcat(vid,"'></video><button onclick='document.querySelector(\"#thevid");
 strcat(vid,id); strcat(vid,"\").src=\"");
-/*strcat(vid,"file://");strcat(vid,cwdir); */strcat(vid,"./");strcat(vid,message+6); strcat(vid,"\"'>Update now</button>"); 
+strcat(vid,"file://");strcat(vid,cwdir); strcat(vid,"/");strcat(vid,message+6); strcat(vid,"\"'>Update now</button>"); 
 fprintf(html1,"%s",vid);
 fclose(html1);
 id[0]++;

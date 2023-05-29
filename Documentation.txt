@@ -1,0 +1,35 @@
+(Please look at the note at the beginning in bld1usingdx.sh for further documentation)
+The following are the tools one need to build android application on termux:-
+--ecj (the eclipse java compiler)
+solution: apt install ecj
+--aapt (android application packging tool)
+solution:  apt install aapt
+--dx (android old dexer)
+solution: apt install dx
+---------------------------------------------------------
+Now to DETAILED setting ups part
+----------------------------------------------------------
+--apksigner (application signing and confirmation of certification of origin tool -certificate using public key)
+solution:
+ what one may not be able to do:-to download openjdk17 (17 not 7 nor 1.7) which is 154MB on and install on what maybe a users' small amount of internal android memory. so what shall we do:-
+apksigner is not the solution because termux will also ask you to download openjdk.
+1. install openssl: apt install openssl
+2. generate certificate and key using the file gen.cert.sh
+3. use signapk.sh to sign the app instead of apksigner to avoid downloading the openjdk
+else
+1. use external sdcard and make termux write by executing termux-setup-storage and by going to the writeable folder termux created.
+2.apt install wget...then go to grimler.se and find the latest opemjdk and download using
+3.wget and wget --continue if interrupted in some case...after installing using dpkg --install openjdkversionnum.deb
+4. goto the install folder $PREFIX/opt and search source.zip (the full java source code move(or remove it if you wish) it to your external storage... same thing with the demos folder..
+5.by doing step 4 you decrease the java storage to a third of its whopping 156MB size.
+
+PART TWO-welcome to d8: java8 to 11
+-----------------------------------
+(the first i.e. dx can build java8 codes but d8 is the new dexer meant for java 8 and later)
+
+
+
+
+
+
+
